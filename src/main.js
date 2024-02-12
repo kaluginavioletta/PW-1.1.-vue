@@ -56,7 +56,14 @@ Vue.component('product', {
                 } else {
                 return `${this.brand} ${this.product} is not on sale.`; // Формирование строки о том, что распродажи нет
                 }
-            }                      
+            },
+            shipping() {
+                if (this.premium) {
+                    return "Free";
+                } else {
+                    return 2.99
+                }
+             }                                  
         },
         computed: {
             title() {
@@ -79,6 +86,9 @@ Vue.component('product', {
                 <ul>
                   <li v-for="detail in details">{{ detail }}</li>
                </ul>
+               <p>User is premium: {{ premium }}</p>
+
+               <p>Shipping: {{ shipping() }}</p>
 
                <div
                class="color-box"
@@ -116,7 +126,9 @@ Vue.component('product', {
 
  let app = new Vue({
     el: '#app',
-
+    data: {
+        premium: true
+    }
 })
 
  
