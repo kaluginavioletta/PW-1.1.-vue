@@ -106,14 +106,15 @@ Vue.component('product-review', {
         </p>
 
         <p>Would you recommend this product?</p>
-        <label>
+        <label v-if="rating >= 3">
           Yes
           <input type="radio" value="Yes" v-model="recommend"/>
         </label>
-        <label>
+        <label v-if="rating >= 3">
           No
           <input type="radio" value="No" v-model="recommend"/>
         </label>
+        <label v-show="rating < 3"></label>
 
         <p>
           <input type="submit" value="Submit">
@@ -260,8 +261,8 @@ Vue.component('product', {
                 <h1>{{ product }}</h1>
                 <p v-if="onSale">{{ sale() }}</p>
                 <p v-else="!onSale">{{ sale() }}</p>
-                <p>In stock</p>
-                <p :class="{ 'outOfStock': !inStock }">Out of Stock</p>
+                <p v-if="inStock" && variants.variantColor === 'green'>In stock</p>
+                <p v-if="variant.variantColor === 'blue'">Out of Stock</p>
                 <product-details :details="details"></product-details>
                <p>User is premium: {{ premium }}</p>
 
