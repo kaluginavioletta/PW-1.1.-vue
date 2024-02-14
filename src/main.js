@@ -203,15 +203,30 @@ Vue.component('product', {
         }
     },
     methods: {
+            updateCartFromLocalStorage() {
+                this.variants.forEach(variant => {
+                    const quantity = JSON.parse(localStorage.getItem(`cart_${variants.variantId}`)) || 0;
+                    variant.variantQuantity = quantity;
+                    this.cart += quantity;
+                });
+            },
             addToCart() {
-                this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
+                this.$emit('add-to-cart', this.cart.push(this.variants[this.selectedVariant]));
             },
             updateCart(id) {
-                this.cart.push(id);
+                localStorage.setItem(`cart_${id}`, JSON.stringify(this.selectedVariant.cartQuantity));
+                this.updateCartFromLocalStorage();
+            },       
+            updateProduct(index) {
+                if (index >= 0 && index < this.variants.length) {
+                  this.selectedVariant = index;
+                  const variant = this.variants[this.selectedVariant];
+                  if (variant.variantImage) {
+                    this.variantId = variant.variantImage;
+                    this.updateCart(this.selectedVariant);
+                  }
+                }
             },         
-            updateProduct(variantImage) {
-                this.image = variantImage
-            },             
             removeToCart() {
                 this.cart -= 1
             },
@@ -221,9 +236,9 @@ Vue.component('product', {
             image() {
                 return this.variants[this.selectedVariant].variantImage;
             },
-            inStock(){
-                return this.variants[this.selectedVariant].variantQuantity
-            },
+            inStock() {
+                return this.variants[this.selectedVariant].variantQuantity > 0;
+            }, 
             sale() {
                 if (this.onSale) {
                 return `${this.brand} ${this.product} is on sale!`; // Формирование строки о проведении распродажи
@@ -271,30 +286,28 @@ Vue.component('product', {
                <product-tabs :reviews="reviews"></product-tabs>
 
                <div class="color-box"
-               v-for="variant in variants"
-               :key="variant.variantId"
-               :style="{ backgroundColor:variant.variantColor }"
-               @mouseover="updateProduct(variant.variantImage)"
+                v-for="variant in variants"
+                :key="variant.variantId"
+                :style="{ backgroundColor:variant.variantColor }"
+                @mouseover="updateProduct(variant.variantImage)"
                >
                </div>
-               </div>
-               </div>
+               <div style="display: flex; justify-content: space-around;">
                <button 
+               v-on:click="addToCart" 
+               :disabled="!inStock" 
+               :class="{ disabledButton: !inStock }">
+               Add to cart
+                </button>
+                <button 
                     v-on:click="addToCart" 
-                    :disabled="!inStock" 
-                    :class="{ disabledButton: !inStock }">
+                    :disabled="!inStockBlock" 
+                    :class="{ disabledButton: !inStockBlock }">
                     Add to cart
-               </button>
-
-               <button 
-                  v-on:click="addToCart" 
-                  :disabled="!inStockBlock" 
-                  :class="{ disabledButton: !inStockBlock }">
-                  Add to cart
-               </button>
+                </button>
+                <button @click="removeFromCart">Remove from cart</button>
+               </div>
             </div>
-
-            <button @click="removeFromCart">Remove from cart</button>
             </div>
             <div>
     </div>
