@@ -105,7 +105,7 @@ Vue.component('product-review', {
           </select>
         </p>
 
-        <p>Would you recommend this product?</p>
+        <p v-if="rating >= 3">Would you recommend this product?</p>
         <label v-if="rating >= 3">
           Yes
           <input type="radio" value="Yes" v-model="recommend"/>
