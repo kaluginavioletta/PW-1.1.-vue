@@ -105,20 +105,17 @@ Vue.component('product-review', {
           </select>
         </p>
 
-        <p v-if="rating >= 3">Would you recommend this product?</p>
-        <label v-if="rating >= 3">
-          Yes
-          <input type="radio" value="Yes" v-model="recommend"/>
+        <p v-if="rating >= 3 && rating <= 5">Would you recommend this product?</p>
+        <label v-if="rating >= 3 && rating <= 5">
+            Yes
+            <input type="radio" value="Yes" v-model="recommend"/>
         </label>
-        <label v-if="rating >= 3">
-          No
-          <input type="radio" value="No" v-model="recommend"/>
+        <label v-if="rating >= 3 && rating <= 5">
+            No
+            <input type="radio" value="No" v-model="recommend"/>
         </label>
-        <label v-show="rating < 3"></label>
 
-        <p>
-          <input type="submit" value="Submit">
-        </p>
+        <input type="submit" value="Submit">
       </form>
     `,
     data() {
@@ -132,7 +129,12 @@ Vue.component('product-review', {
     methods:{
         onSubmit() {
             this.errors = []
-            if(this.name && this.review && this.rating && this.recommend) {
+            if(this.rating && ((this.rating >= 3 && this.rating <= 5) && !this.recommend)) {
+                this.errors.push("Recommendation is required for ratings between 3 and 5.");
+            } else {
+                if(!this.name) this.errors.push("Name required.");
+                if(!this.review) this.errors.push("Review required.");
+                if(!this.rating) this.errors.push("Rating required.");
                 let productReview = {
                     name: this.name,
                     review: this.review,
@@ -144,14 +146,9 @@ Vue.component('product-review', {
                 this.review = null
                 this.rating = null
                 this.recommend = null
-            } else {
-                if(!this.name) this.errors.push("Name required.")
-                if(!this.review) this.errors.push("Review required.")
-                if(!this.rating) this.errors.push("Rating required.")
-                if(!this.recommend) this.errors.push("Recommendation required.")
-            }
-        }
+            } 
     }
+}
 }) 
 Vue.component('product-details', {
     props: {
@@ -184,6 +181,7 @@ Vue.component('product', {
             altText: "A pair of socks",
             inStock: true,
             details: ['80% cotton', '20% polyester', 'Gender-neutral'],
+            currentVariant: null,
             variants: [
             {
                 variantId: 2234,
@@ -205,24 +203,21 @@ Vue.component('product', {
     methods: {
             addToCart() {
                 this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
-            },
-            updateCart(id) {
-                this.cart.push(id);
-            },         
+            },       
             updateProduct(variantImage) {
                 this.image = variantImage
-            },             
+            },               
             removeToCart() {
                 this.cart -= 1
             },
-            removeFromCart: function() {
+            removeFromCart() {
                 this.$emit('remove-from-cart', this.variants[this.selectedVariant].variantId)
-            },  
+            }, 
             image() {
                 return this.variants[this.selectedVariant].variantImage;
             },
-            inStock(){
-                return this.variants[this.selectedVariant].variantQuantity
+            inStock() {
+                return this.variants.some(variant => variant.variantQuantity > 0);
             },
             sale() {
                 if (this.onSale) {
@@ -243,6 +238,12 @@ Vue.component('product', {
             title() {
                 return this.brand + ' ' + this.product;
             },
+            inStock() {
+                return this.variants.some(variant => variant.variantQuantity > 0)
+            },
+            inStockBlock() {
+                return this.variants.some(variant => variant.variantQuantity > 0)
+            }
         },
         created() {
             eventBus.$on('review-submitted', productReview => {
@@ -268,34 +269,25 @@ Vue.component('product', {
 
                <info-tabs :shipping="shipping()" :details="details"></info-tabs>
 
-               <product-tabs :reviews="reviews"></product-tabs>
+                <div 
+                    class="color-box"
+                    v-for="variant in variants"
+                    :key="variant.variantId"
+                    :style="{ backgroundColor:variant.variantColor }"
+                    @mouseover="updateProduct(variant.variantImage)">
+                </div>
 
-               <div class="color-box"
-               v-for="variant in variants"
-               :key="variant.variantId"
-               :style="{ backgroundColor:variant.variantColor }"
-               @mouseover="updateProduct(variant.variantImage)"
-               >
+                <product-tabs :reviews="reviews"></product-tabs>
                </div>
                </div>
-               </div>
-               <button 
-                    v-on:click="addToCart" 
-                    :disabled="!inStock" 
-                    :class="{ disabledButton: !inStock }">
-                    Add to cart
-               </button>
 
-               <button 
-                  v-on:click="addToCart" 
-                  :disabled="!inStockBlock" 
-                  :class="{ disabledButton: !inStockBlock }">
-                  Add to cart
-               </button>
+               <button v-on:click="addToCart" :disabled="!inStock" :class="{ disabledButton: !inStock }">Add to cart</button>
+
+            </div>
+            </div>
             </div>
 
             <button @click="removeFromCart">Remove from cart</button>
-            </div>
             <div>
     </div>
   `, 
